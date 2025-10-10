@@ -26,9 +26,13 @@ public class PlayerMovement : MonoBehaviour
         // --- Animation walk/idle ---
         anim.SetFloat("Speed", Mathf.Abs(moveInput));
 
-        
+        bool isWalking = Mathf.Abs(moveInput) > 0;
 
 
+        anim.SetBool("isWalking", isWalking);
+
+        // --- Animation jump ---
+        //anim.SetBool("isJumping", !isGrounded);
         // --- Flip sprite ---
         if (moveInput > 0)
             sr.flipX = false;
