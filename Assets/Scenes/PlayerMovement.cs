@@ -1,14 +1,17 @@
 using UnityEngine;
+using System.Collections;
+
 
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5f;
-    public float jumpForce = 10f;
-
+    public float jumpForce = 2f;
     private bool isGrounded;
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
+
+    public GameObject interactionPromptUI;
 
     void Start()
     {
@@ -23,8 +26,8 @@ public class PlayerMovement : MonoBehaviour
         float moveInput = Input.GetAxisRaw("Horizontal");
         transform.Translate(Vector2.right * moveInput * moveSpeed * Time.deltaTime);
 
-        // --- Animation walk/idle ---
-        anim.SetFloat("Speed", Mathf.Abs(moveInput));
+        float moveInputJump = Input.GetAxisRaw("Vertical");
+
 
         bool isWalking = Mathf.Abs(moveInput) > 0;
 
@@ -32,28 +35,52 @@ public class PlayerMovement : MonoBehaviour
         anim.SetBool("isWalking", isWalking);
 
         // --- Animation jump ---
-        //anim.SetBool("isJumping", !isGrounded);
+
         // --- Flip sprite ---
         if (moveInput > 0)
             sr.flipX = false;
         else if (moveInput < 0)
             sr.flipX = true;
 
-        // --- Jump ---
+
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
+            Debug.Log("Jump key was pressed");
+
+            //anim.SetBool("isJumping", !isGrounded);
+
+            // Reset vitesse verticale avant d'appliquer le saut
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+
+            // Appliquer une impulsion constante
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            anim.SetTrigger("Jump");   // 🔥 déclenche l'anim de saut
+
+            //anim.SetTrigger("Jump");
         }
+
+
 
         // --- Gestion état en l’air (fall) ---
         if (!isGrounded && rb.linearVelocity.y < 0)
         {
-            anim.SetBool("isFalling", true);
+            //anim.SetBool("isFalling", true);
         }
         else
         {
-            anim.SetBool("isFalling", false);
+            //anim.SetBool("isFalling", false);
+        }
+    }
+    
+     private void OnCollisionStay2D(Collision2D collision) 
+    {
+        if (collision.gameObject.CompareTag("NPC"))
+        {
+            interactionPromptUI.SetActive(true);
+            collision.gameObject.GetComponent<IInteractable>()?.Interact();
+        }
+        else
+        {
+            interactionPromptUI.SetActive(false);
         }
     }
 
@@ -62,7 +89,7 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
-            anim.SetBool("isJumping", false);
+            //anim.SetBool("isJumping", false);
         }
     }
 
@@ -71,7 +98,7 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = false;
-            anim.SetBool("isJumping", true);
+           // anim.SetBool("isJumping", true);
         }
     }
 }
